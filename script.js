@@ -362,7 +362,7 @@ const data = [{
 ];
 
 const defaultOption = "<option value=\"\" disabled selected style=\"display:none;\">Select an option...</option>";
-
+let userData = [{}];
 const parent = document.getElementById('parent');
 
 const label = document.createElement('label');
@@ -382,6 +382,11 @@ const select3 = createSelect();
 const input = document.createElement('input');
 const button = document.createElement('button');
 button.innerText = 'Submit';
+const clearValuesButton = document.createElement('button');
+clearValuesButton.innerText = 'Clear All';
+const restoreValuesButton = document.createElement('button');
+restoreValuesButton.innerText = 'Restore All';
+
 
 for (i = 0; i < data.length; i++) {
     const option = document.createElement('option');
@@ -391,12 +396,11 @@ for (i = 0; i < data.length; i++) {
     parent.appendChild(select);
 }
 
-
 select.addEventListener('change', () => {
-   
+
     if (parent.contains(select1)) {
         select1.innerHTML = defaultOption;
-        parent.removeChild(select1);        
+        parent.removeChild(select1);
     }
     if (parent.contains(select2)) {
         select2.innerHTML = defaultOption;
@@ -409,7 +413,17 @@ select.addEventListener('change', () => {
     if (parent.contains(input)) {
         parent.removeChild(input)
     }
+    if (parent.contains(button)) {
+        parent.removeChild(button);
+    }
+    if (parent.contains(clearValuesButton)) {
+        parent.removeChild(clearValuesButton);
+    }
+    if (parent.contains(restoreValuesButton)) {
+        parent.removeChild(restoreValuesButton);
+    }
 
+    userData[0].property_name = select.value;
 
     for (j = 0; j < data.length; j++) {
         if (select.value === data[j].property_name) {
@@ -438,10 +452,25 @@ select1.addEventListener('change', () => {
     if (parent.contains(input)) {
         parent.removeChild(input)
     }
+    if (parent.contains(button)) {
+        parent.removeChild(button);
+    }
+    if (parent.contains(clearValuesButton)) {
+        parent.removeChild(clearValuesButton);
+    }
+    if (parent.contains(restoreValuesButton)) {
+        parent.removeChild(restoreValuesButton);
+    }
+
+    userData[0].rules = {};
+    userData[0].rules.fields = [{}]
+    userData[0].rules.fields[0].name = select1.value;
 
     for (j = 0; j < data.length; j++) {
         for (i = 0; i < data[j].rules.fields.length; i++) {
             if (select1.value === data[j].rules.fields[i].name) {
+                userData[0].rules.fields[0].label = data[j].rules.fields[i].label; //storing value of user choices
+                userData[0].rules.fields[0].dataType = data[j].rules.fields[i].dataType;
                 for (k = 0; k < data[j].rules.fields[i].operators.length; k++) {
                     const option = document.createElement('option');
                     option.value = data[j].rules.fields[i].operators[k].name;
@@ -462,7 +491,24 @@ select2.addEventListener('change', () => {
         select3.innerHTML = defaultOption;
         parent.removeChild(select3)
     }
+    if (parent.contains(button)) {
+        parent.removeChild(button);
+    }
+    if (parent.contains(clearValuesButton)) {
+        parent.removeChild(clearValuesButton);
+    }
+    if (parent.contains(restoreValuesButton)) {
+        parent.removeChild(restoreValuesButton);
+    }
+
+    userData[0].rules.fields[0].operators = [{}];
+    userData[0].rules.fields[0].operators[0].name = select2.value;
+    if (userData[0].rules.fields[0].hasOwnProperty('operatorOptions')) {
+        delete userData[0].rules.fields[0].operatorOptions;
+    }
+
     if (select2.value === 'isInTheBest') {
+        userData[0].rules.fields[0].operatorOptions = { isInTheBest: [{ name: '' }] };
         for (i = 0; i < data[0].rules.fields[2].operatorOptions.isInTheBest.length; i++) {
             const option = document.createElement('option');
             option.value = data[0].rules.fields[2].operatorOptions.isInTheBest[i].name;
@@ -471,6 +517,7 @@ select2.addEventListener('change', () => {
             parent.appendChild(select3);
         }
     } else if (select2.value === 'isInTheWorst') {
+        userData[0].rules.fields[0].operatorOptions = { isInTheWorst: [{ name: '' }] };
         for (i = 0; i < data[0].rules.fields[2].operatorOptions.isInTheWorst.length; i++) {
             const option = document.createElement('option');
             option.value = data[0].rules.fields[2].operatorOptions.isInTheWorst[i].name;
@@ -480,53 +527,71 @@ select2.addEventListener('change', () => {
         }
     }
 
-    
-
-    for(i=0;i<data.length;i++){
-        if(data[i].property_name === select.value)
-        for(j=0; j< data[i].rules.fields.length;j++) {
-            if(data[i].rules.fields[j].name === select1.value) {                
-                const type = data[i].rules.fields[j].dataType;
-                if(type === 'number')
-                {
-                    input.type = type;
-                    input.value = '';
-                    input.placeholder = 'Enter Only Number Value'
-                }else {
-                    input.type = 'text';
-                    input.value = '';
-                    input.placeholder = 'Enter Only String Value';
+    for (i = 0; i < data.length; i++) {
+        if (data[i].property_name === select.value) {
+            for (j = 0; j < data[i].rules.fields.length; j++) {
+                if (data[i].rules.fields[j].name === select1.value) {
+                    const type = data[i].rules.fields[j].dataType;
+                    if (type === 'number') {
+                        input.type = type;
+                        input.value = '';
+                        input.placeholder = 'Enter Only Number Value'
+                    } else {
+                        input.type = 'text';
+                        input.value = '';
+                        input.placeholder = 'Enter Only String Value';
+                    }
+                    parent.appendChild(input);
                 }
-                parent.appendChild(input);
             }
         }
     }
 })
 
-input.addEventListener('input',()=>{
-    if(input.value.length !== 0){
+input.addEventListener('input', () => {
+    if (input.value.length !== 0) {
         parent.appendChild(button);
-    }else if (parent.contains(button)) {
+        userData[0].inputFieldValue = input.value;
+    } else if (parent.contains(button)) {
         parent.removeChild(button);
+        parent.removeChild(clearValuesButton);        
+        parent.removeChild(restoreValuesButton);
     }
 })
 
-button.addEventListener('click', ()=> {
-    debugger
-    const yourData = [{
-        property_name: select.value,
-        rule : {
-            fields : [ {
-                name: select1.value,
-                dataType: input.type,
-                operators : [
-                    {name : select2.value}
-                ],
-                operatorOptions : select3.value,
-            }]
+button.addEventListener('click', () => {
+    if (userData[0].rules.fields[0].hasOwnProperty('operatorOptions'))
+        if (userData[0].rules.fields[0].operatorOptions.hasOwnProperty('isInTheBest')) {
+            userData[0].rules.fields[0].operatorOptions.isInTheBest[0].name = select3.value;
+        } else if (userData[0].rules.fields[0].operatorOptions.hasOwnProperty('isInTheWorst')) {
+            userData[0].rules.fields[0].operatorOptions.isInTheWorst[0].name = select3.value;
         }
-    }] 
+    parent.appendChild(clearValuesButton);
 
     console.log('your data is');
-    console.log (yourData)
+    console.log(userData)
+})
+
+clearValuesButton.addEventListener('click', ()=> {
+    select.value = '';
+    select1.value = '';
+    select2.value = '';
+    select3.value = '';
+    input.value = '';
+
+    parent.appendChild(restoreValuesButton);
+})
+
+restoreValuesButton.addEventListener('click', ()=> {
+    select.value = userData[0].property_name;
+    select1.value = userData[0].rules.fields[0].name;
+    select2.value = userData[0].rules.fields[0].operators[0].name;
+    input.value = userData[0].inputFieldValue;
+
+    if (userData[0].rules.fields[0].hasOwnProperty('operatorOptions'))
+        if (userData[0].rules.fields[0].operatorOptions.hasOwnProperty('isInTheBest')) {
+            select3.value=userData[0].rules.fields[0].operatorOptions.isInTheBest[0].name ;
+        } else if (userData[0].rules.fields[0].operatorOptions.hasOwnProperty('isInTheWorst')) {
+            select3.value=userData[0].rules.fields[0].operatorOptions.isInTheWorst[0].name;
+        }
 })
